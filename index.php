@@ -1,66 +1,80 @@
 <?php
-require 'includes/header.php';
-$q = trim($_GET['q'] ?? '');
-$limit = 10;
-$page = max(1, (int)($_GET['page'] ?? 1));
-$offset = ($page - 1) * $limit;
+session_start();
+include("config.php");
 
-if ($q !== '') {
-    $like = "%$q%";
-    $countStmt = $conn->prepare("SELECT COUNT(*) AS c FROM books WHERE title LIKE ? OR author LIKE ? OR category LIKE ?");
-    $countStmt->bind_param("sss", $like, $like, $like);
-} else {
-    $countStmt = $conn->prepare("SELECT COUNT(*) AS c FROM books");
+// If already logged in → redirect to dashboard
+if (isset($_SESSION['admin_id'])) {
+    header("Location: dashboard.php");
+    exit();
 }
-$countStmt->execute();
-$total = (int)$countStmt->get_result()->fetch_assoc()['c'];
-$pages = max(1, (int)ceil($total / $limit));
 
-if ($q !== '') {
-    $stmt = $conn->prepare("SELECT * FROM books WHERE title LIKE ? OR author LIKE ? OR category LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param("sssii", $like, $like, $like, $limit, $offset);
-} else {
-    $stmt = $conn->prepare("SELECT * FROM books ORDER BY created_at DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param("ii", $limit, $offset);
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    $sql = "SELECT * FROM admin WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 1) {
+        $row = $result->fetch_assoc();
+
+        // password_verify checks hashed password
+        if (password_verify($password, $row['password'])) {
+            $_SESSION['admin_id'] = $row['id'];
+            $_SESSION['admin_username'] = $row['username'];
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            $error = "Invalid username or password!";
+        }
+    } else {
+        $error = "Invalid username or password!";
+    }
 }
-$stmt->execute();
-$res = $stmt->get_result();
 ?>
-<section class="card">
-  <h2>Books</h2>
-  <form class="toolbar" method="get">
-    <input type="text" name="q" placeholder="Search..." value="<?= e($q) ?>">
-    <button type="submit">Search</button>
-    <a class="btn" href="add.php">+ Add Book</a>
-  </form>
-  <div class="table-wrap">
-    <table><thead><tr><th>#</th><th>Title</th><th>Author</th><th>Category</th><th>Available</th><th>Actions</th></tr></thead><tbody>
-      <?php if ($res->num_rows === 0): ?><tr><td colspan="6" class="muted">No books found.</td></tr><?php endif; ?>
-      <?php while ($row = $res->fetch_assoc()): ?>
-      <tr>
-        <td><?= (int)$row['id'] ?></td>
-        <td><?= e($row['title']) ?></td>
-        <td><?= e($row['author']) ?></td>
-        <td><?= e($row['category']) ?></td>
-        <td><?= $row['available'] ? 'Yes' : 'No' ?></td>
-        <td class="actions">
-          <a href="edit.php?id=<?= (int)$row['id'] ?>">Edit</a>
-          <form method="post" action="delete.php" class="inline" onsubmit="return confirm('Delete this book?');">
-            <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
-            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
-            <button type="submit">Delete</button>
-          </form>
-        </td>
-      </tr>
-      <?php endwhile; ?>
-    </tbody></table>
-  </div>
-  <?php if ($pages > 1): ?>
-  <div class="pagination">
-    <?php for ($i=1;$i<=$pages;$i++): ?>
-      <a class="<?= $i==$page ? 'active':'' ?>" href="?page=<?= $i ?>&q=<?= urlencode($q) ?>"><?= $i ?></a>
-    <?php endfor; ?>
-  </div>
-  <?php endif; ?>
-</section>
-<?php require 'includes/footer.php'; ?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Library Management - Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; }
+        .login-container {
+            width: 350px;
+            margin: 100px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        }
+        h2 { text-align: center; margin-bottom: 20px; }
+        input[type=text], input[type=password] {
+            width: 100%; padding: 10px; margin: 8px 0;
+            border: 1px solid #ccc; border-radius: 5px;
+        }
+        input[type=submit] {
+            width: 100%; background: #007BFF; color: white;
+            padding: 10px; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type=submit]:hover { background: #0056b3; }
+        .error { color: red; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Admin Login</h2>
+        <?php if ($error != "") { echo "<p class='error'>$error</p>"; } ?>
+        <form method="POST" action="">
+            <input type="text" name="username" placeholder="Enter Username" required>
+            <input type="password" name="password" placeholder="Enter Password" required>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</body>
+</html>
