@@ -1,0 +1,27 @@
+/* style.css (place in project root) */
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f6f7fb;color:#222}
+.container{max-width:960px;margin:24px auto;padding:0 16px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0e6dfd;color:#fff}
+.topbar .brand{font-weight:700}
+.topbar nav a,.topbar nav button{margin-left:12px;color:#fff;text-decoration:none;background:transparent;border:none;cursor:pointer}
+.card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:18px;margin-bottom:18px}
+.toolbar{display:flex;gap:8px;margin-bottom:12px}
+.toolbar input{flex:1;padding:10px;border:1px solid #ddd;border-radius:10px}
+.btn, button{padding:10px 14px;border-radius:10px;border:1px solid #0e6dfd;background:#0e6dfd;color:#fff;cursor:pointer;text-decoration:none}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+.muted{color:#666}
+.pagination{margin-top:12px}
+.pagination a{padding:6px 10px;border:1px solid #ddd;margin-right:6px;border-radius:8px;text-decoration:none;color:#222}
+.pagination a.active{background:#0e6dfd;color:#fff}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid label{display:flex;flex-direction:column;font-size:14px}
+.form-grid input{padding:10px;border:1px solid #ddd;border-radius:10px}
+.checkbox{grid-column:1/-1;display:flex;align-items:center;gap:8px}
+.actions{grid-column:1/-1;display:flex;gap:8px}
+.footer{padding:18px;text-align:center;color:#777}
+.centered{display:flex;min-height:100vh;align-items:center;justify-content:center;background:#eef2ff}
+.centered .card{width:min(420px,92%);padding:22px}
+.error{background:#ffe8e8;border:1px solid #ffb8b8;color:#b30000;padding:8px;border-radius:8px;margin:8px 0}
